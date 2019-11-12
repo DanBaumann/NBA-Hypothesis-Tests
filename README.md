@@ -6,9 +6,11 @@ This repo contains:
 * Three test files
 * A starter jupyter notebook# TurkorMod3Project
 
+BUSINESS APPROACH
+* We want to create several hypothoses which test the effectiveness of players based on metrics like height, position, weight. Our findings should tell us which type of players are effective in certain roles. Our aim is to prescribe draft picks for teams in the annual NBA draft. For example, if a team is looking for a 3 point shooter, which type of player height and weight should they be looking at.
+
 THE DATA
-We will be using NBA stats from 2017, taking a 2 week period in which games were played.
-The data is rich in in-game statistics such as field goals, free throws etc
+We will be using NBA stats that were recorded between 1998-2017(inclusive). We have information on player names, height, and several parameters which are well known within the basketballing world.
 
 HYPOTHESIS
 1. Players less than 6ft7 tall have a higher 3-point percentage than those who are 6ft7 or taller. i.e. mu_short > mu_tall
