@@ -10,12 +10,13 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 import math
+import matplotlib.pyplot as plt
 import seaborn as sns
 
 class CLT():
     
     def get_sample(data, n):
-        samples = []
+        sample = []
         while len(sample) != 30:
             x = np.random.choice(round(data, 3))
             sample.append(x)
@@ -27,8 +28,8 @@ class CLT():
     def create_sample_distribution(data, dist_size, n = 30):
         sample_dist = []
         while len(sample_dist) != dist_size:
-            sample = get_sample(data, n)
-            sample_mean = get_sample_mean(sample)
+            sample = CLT.get_sample(data, n)
+            sample_mean = CLT.get_sample_mean(sample)
             sample_dist.append(sample_mean)
         return sample_dist
     
@@ -57,25 +58,74 @@ class Welchs_Test():
         p = 1 - st.t.cdf(t, df)
         return p
     
-    
-class Hypothesis_Testing():
-    
-    def compare_pval_alpha(p_val, alpha):
-        status = ''
-        if p_val > alpha:
-            status = "Fail to reject"
-        else:
-            status = 'Reject'
-        return status  
+       
+def compare_pval_alpha(p_val, alpha):
+    status = ''
+    if p_val > alpha:
+        status = "Fail to reject"
+    else:
+        status = 'Reject'
+    return status  
     
 class Two_Sample_Test():
     
-    def visualize_dist(self, dist1, dist2):
+    def visualize_dist(dist1,dist2):
         sns.set(color_codes=True)
         sns.set(rc={'figure.figsize':(12,10)})
-        sns.distplot(self.short_dist, label="dist_1")
-        sns.distplot(self.tall_dist, label="dist_2")
+        sns.distplot(dist1,hist=False, label="dist_1")
+        sns.distplot(dist2,hist=False, label="dist_2")
         plt.legend()
+        plt.show()
+        
+    def conclusion(result, t_crit, alpha):
+        if (result[0]>t_crit) and (result[1]<alpha):
+            print ("Null hypothesis rejected. H1 is accepted. Results are statistically significant with t-value =", round(result[0], 2), "critical t-value =", t_crit, "and p-value =", np.round((result[1]), 10))
+        else:
+            print ("Null hypothesis is True with t-value =", round(result[0], 2), ", critical t-value =", t_crit, "and p-value =", np.round((result[1]), 10))
+    
+    def visualize_t(t_stat, n_dist1, n_dist2):
+        # initialize a matplotlib "figure"
+        fig = plt.figure(figsize=(12,5))
+        ax = fig.gca()
+        # generate points on the x axis between -4 and 4:
+        xs = np.linspace(-4, 4, 500)
+
+        # use stats.t.ppf to get critical value. For alpha = 0.05 and two tailed test
+        crit = stats.t.ppf(1-0.025, (n_dist1+n_dist2-2))
+
+        # use stats.t.pdf to get values on the probability density function for the t-distribution
+
+        ys= stats.t.pdf(xs, (n_dist1+n_dist2-2), 0, 1)
+        ax.plot(xs, ys, linewidth=3, color='darkred')
+
+        ax.axvline(t_stat, color='red', linestyle='--', lw=5,label='t-statistic')
+
+        ax.axvline(crit, color='black', linestyle='--', lw=5)
+        ax.axvline(-crit, color='black', linestyle='--', lw=5)
+
+        plt.show()
+        
+    def t_crit(alpha, dof):
+        return stats.t.ppf(1-alpha**2, dof)
+    
+    def t_test(dist1, dist2):
+        return stats.ttest_ind(dist1, dist2)
+    
+    def visualize_sample_dist(dist):
+        fig = plt.figure(figsize=(8,5))
+        sns.distplot(dist)
+        plt.show()
+        print(stats.normaltest(dist))
+        
+    def explore_data(data1, data2):
+        fig = plt.figure(figsize=(8,5))
+        sns.boxplot( data1, data2,)
+        plt.show()
+        
+    def overlapping_visual(data1,data2):
+        fig = plt.figure(figsize=(8,5))
+        sns.distplot(data1, hist=False)
+        sns.distplot(data2, hist=False)
         plt.show()
         
     
