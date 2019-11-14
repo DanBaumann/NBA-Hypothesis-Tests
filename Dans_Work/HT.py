@@ -10,11 +10,12 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 import math
+import scipy.stats as st
 
 class CLT():
-    
+
     def get_sample(data, n):
-        samples = []
+        sample = []
         while len(sample) != 30:
             x = np.random.choice(round(data, 3))
             sample.append(x)
@@ -26,8 +27,8 @@ class CLT():
     def create_sample_distribution(data, dist_size, n = 30):
         sample_dist = []
         while len(sample_dist) != dist_size:
-            sample = get_sample(data, n)
-            sample_mean = get_sample_mean(sample)
+            sample = CLT.get_sample(data, n)
+            sample_mean = CLT.get_sample_mean(sample)
             sample_dist.append(sample_mean)
         return sample_dist
     
@@ -35,36 +36,47 @@ class Welchs_Test():
     
     def welch_t(a, b): 
         num = np.mean(a) - np.mean(b)
-        se_a = np.var(a, ddof = 1)/a.size
-        se_b = np.var(b, ddof = 1)/b.size
+        se_a = np.var(a, ddof = 1)/len(a)
+        se_b = np.var(b, ddof = 1)/len(b)
         denom = np.sqrt(se_a + se_b)
         return np.abs(num/denom)
     
     def welch_df(a, b):
         S1 = np.var(a, ddof = 1)
         S2 = np.var(b, ddof = 1)
-        N1 = a.size
-        N2 = b.size
+        N1 = len(a)
+        N2 = len(b)
         V1 = N1 - 1
         V2 = N2 - 1
         num = (S1/N1 + S2/N2)**2
         denom = (S1/ N1)**2/V1 + (S2/ N2)**2/(V2)
+        return num/denom
         
     def p_value(a, b, two_sided = False):
-        t = welch_t(a, b)
-        df = welch_df(a, b)
-        p = 1 - st.t.cdf(t, df)
+        t = Welchs_Test.welch_t(a, b)
+        df = Welchs_Test.welch_df(a, b)
+        p = 1 - (st.t.cdf(t, df))
         return p
     
+class Normal_Test():
+    
+    def normality_test(name, data):
+        test = st.normaltest(data)
+        print("Results for {} data: \nt-statistic: {} \np-value: {}".format(name, test[0], test[1]))
+        if test[1] < 0.05:
+            print("Can reject the null hypothesis that this distribution is normal")
+        else:
+            print("Cannot reject the null hypothesis that this distribution is normal")
+
     
 class hypothesis_testing():
     
     def compare_pval_alpha(p_val, alpha):
         status = ''
         if p_val > alpha:
-            status = "Fail to reject"
+            status = "Fail to reject the null hypothesis"
         else:
-            status = 'Reject'
+            status = 'Reject the null hypothesis. Accept the alternative hypothesis'
         return status   
     
 
@@ -103,12 +115,3 @@ class hypothesis_testing():
 #         print(".")
 
 #     return status
-
-def hypothesis_test_two():
-    pass
-
-def hypothesis_test_three():
-    pass
-
-def hypothesis_test_four():
-    pass
