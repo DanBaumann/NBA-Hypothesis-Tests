@@ -11,30 +11,62 @@ import numpy as np
 from scipy import stats
 import math
 
-def create_sample_dists(cleaned_data, y_var=None, categories=[]):
-    """
-    Each hypothesis test will require you to create a sample distribution from your data
-    Best make a repeatable function
-
-    :param cleaned_data:
-    :param y_var: The numeric variable you are comparing
-    :param categories: the categories whose means you are comparing
-    :return: a list of sample distributions to be used in subsequent t-tests
-
-    """
-    htest_dfs = []
-
-    # Main chunk of code using t-tests or z-tests
-    return htest_dfs
-
-def compare_pval_alpha(p_val, alpha):
-    status = ''
-    if p_val > alpha:
-        status = "Fail to reject"
-    else:
-        status = 'Reject'
-    return status
-
+class CLT():
+    
+    def get_sample(data, n):
+        samples = []
+        while len(sample) != 30:
+            x = np.random.choice(round(data, 3))
+            sample.append(x)
+        return sample
+    
+    def get_sample_mean(sample):
+        return np.sum(sample)/len(sample)
+    
+    def create_sample_distribution(data, dist_size, n = 30):
+        sample_dist = []
+        while len(sample_dist) != dist_size:
+            sample = get_sample(data, n)
+            sample_mean = get_sample_mean(sample)
+            sample_dist.append(sample_mean)
+        return sample_dist
+    
+class Welchs_Test():
+    
+    def welch_t(a, b): 
+        num = np.mean(a) - np.mean(b)
+        se_a = np.var(a, ddof = 1)/a.size
+        se_b = np.var(b, ddof = 1)/b.size
+        denom = np.sqrt(se_a + se_b)
+        return np.abs(num/denom)
+    
+    def welch_df(a, b):
+        S1 = np.var(a, ddof = 1)
+        S2 = np.var(b, ddof = 1)
+        N1 = a.size
+        N2 = b.size
+        V1 = N1 - 1
+        V2 = N2 - 1
+        num = (S1/N1 + S2/N2)**2
+        denom = (S1/ N1)**2/V1 + (S2/ N2)**2/(V2)
+        
+    def p_value(a, b, two_sided = False):
+        t = welch_t(a, b)
+        df = welch_df(a, b)
+        p = 1 - st.t.cdf(t, df)
+        return p
+    
+    
+class hypothesis_testing:
+    
+    def compare_pval_alpha(p_val, alpha):
+        status = ''
+        if p_val > alpha:
+            status = "Fail to reject"
+        else:
+            status = 'Reject'
+    return status   
+    
 
 def hypothesis_test_one(alpha = None, cleaned_data):
     """
