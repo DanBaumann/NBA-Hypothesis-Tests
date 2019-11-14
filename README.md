@@ -14,6 +14,6 @@ We will be using NBA stats that were recorded between 1998-2017(inclusive). We h
 
 HYPOTHESIS
 1. Players less than 6ft7 tall have a higher 3-point percentage than those who are 6ft7 or taller. i.e. mu_short > mu_tall
-2. On average, home teams score similarly to away teams. mu_home = mu_away
+2. On average, heavier players do more fauls then the lighter ones. mu_heavy > mu_light
 3. Guards have a higher free throw percentage than centres. mu_guard > mu_centre
 4. Teams in the west conference, on average, score more than eastern conference teams. mu_west > mu_east
