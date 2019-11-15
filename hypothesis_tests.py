@@ -77,54 +77,189 @@ class Hypothesis_Testing():
     
 class Two_Sample_Test():
     
-    def visualize_dist(self, dist1, dist2):
+    def visualize_dist(dist1,dist2):
         sns.set(color_codes=True)
         sns.set(rc={'figure.figsize':(12,10)})
-        sns.distplot(self.short_dist, label="dist_1")
-        sns.distplot(self.tall_dist, label="dist_2")
+        sns.distplot(dist1,hist=False, label="dist_1")
+        sns.distplot(dist2,hist=False, label="dist_2")
         plt.legend()
         plt.show()
         
+    def conclusion(result, t_crit, alpha):
+        if (result[0]>t_crit) and (result[1]<alpha):
+            print ("Null hypothesis rejected. H1 is accepted. Results are statistically significant with t-value =", round(result[0], 2), "critical t-value =", t_crit, "and p-value =", np.round((result[1]), 10))
+        else:
+            print ("Null hypothesis is True with t-value =", round(result[0], 2), ", critical t-value =", t_crit, "and p-value =", np.round((result[1]), 10))
     
+    def visualize_t(t_stat, n_dist1, n_dist2):
+        # initialize a matplotlib "figure"
+        fig = plt.figure(figsize=(12,5))
+        ax = fig.gca()
+        # generate points on the x axis between -4 and 4:
+        xs = np.linspace(-4, 4, 500)
 
-# def hypothesis_test_one(alpha = None, cleaned_data):
-#     """
-#     Describe the purpose of your hypothesis test in the docstring
-#     These functions should be able to test different levels of alpha for the hypothesis test.
-#     If a value of alpha is entered that is outside of the acceptable range, an error should be raised.
+        # use stats.t.ppf to get critical value. For alpha = 0.05 and two tailed test
+        crit = stats.t.ppf(1-0.025, (n_dist1+n_dist2-2))
 
-#     :param alpha: the critical value of choice
-#     :param cleaned_data:
-#     :return:
-#     """
-#     # Get data for tests
-#     comparison_groups = create_sample_dists(cleaned_data=None, y_var=None, categories=[])
+        # use stats.t.pdf to get values on the probability density function for the t-distribution
 
-#     ###
-#     # Main chunk of code using t-tests or z-tests, effect size, power, etc
-#     ###
+        ys= stats.t.pdf(xs, (n_dist1+n_dist2-2), 0, 1)
+        ax.plot(xs, ys, linewidth=3, color='darkred')
 
-#     # starter code for return statement and printed results
-#     status = compare_pval_alpha(p_val, alpha)
-#     assertion = ''
-#     if status == 'Fail to reject':
-#         assertion = 'cannot'
-#     else:
-#         assertion = "can"
-#         # calculations for effect size, power, etc here as well
+        ax.axvline(t_stat, color='red', linestyle='--', lw=5,label='t-statistic')
 
-#     print(f'Based on the p value of {p_val} and our aplha of {alpha} we {status.lower()}  the null hypothesis.'
-#           f'\n Due to these results, we  {assertion} state that there is a difference between NONE')
+        ax.axvline(crit, color='black', linestyle='--', lw=5)
+        ax.axvline(-crit, color='black', linestyle='--', lw=5)
 
-#     if assertion == 'can':
-#         print(f"with an effect size, cohen's d, of {str(coh_d)} and power of {power}.")
-#     else:
-#         print(".")
+        plt.show()
+        
+    def t_crit(alpha, dof):
+        return stats.t.ppf(1-alpha**2, dof)
+    
+    def t_test(dist1, dist2):
+        return stats.ttest_ind(dist1, dist2)
+    
+    def visualize_sample_dist(dist):
+        fig = plt.figure(figsize=(8,5))
+        sns.distplot(dist)
+        plt.show()
+        print(stats.normaltest(dist))
+        
+    def explore_data(data1, data2):
+        fig = plt.figure(figsize=(8,5))
+        sns.boxplot( data1, data2,)
+        plt.show()
+        
+    def overlapping_visual(data1,data2):
+        fig = plt.figure(figsize=(8,5))
+        sns.distplot(data1, hist=False)
+        sns.distplot(data2, hist=False)
+        plt.show()
 
-#     return status
+        
+def hypothesis_test_one(alpha,df):
+    short_players = df.loc[df['height'] < 200]
+    tall_players = df.loc[df['height'] > 200]
 
-def hypothesis_test_two():
-    pass
+    sh_pl_h = short_players.height
+    sh_pl_3p = round(short_players['3P%'],3)
+
+    tall_pl_h = tall_players.height
+    tall_pl_3p = round(tall_players['3P%'],3)
+    
+    Two_Sample_Test.overlapping_visual(sh_pl_3p, tall_pl_3p)
+    print("Since our dataset is non-normal, that means we'll need to use the Central Limit Theorem.")
+    print("\n")
+    print("esc + m + enter")
+    print("\n")
+    print("Now that we have helper functions to help us sample with replacement and calculate sample means, we just need to bring it all together and write a function that creates a sample distribution of sample means!")
+    
+    dist_size = 100
+    short_dist = CLT.create_sample_distribution(sh_pl_3p, dist_size, n=30)
+    tall_dist = CLT.create_sample_distribution(tall_pl_3p, dist_size, n=30)
+    
+    # Create a plot showing overlapping of distribution means and sds for inspection
+    Two_Sample_Test.visualize_dist(short_dist, tall_dist)
+    
+    space = "\n\n"
+    a = "1) Set up null and alternative hypotheses \n2) Choose a significance level \n3) Calculate the test statistic \n4) Determine the critical or p-value (find the rejection region) \n5) Compare t-value with critical t-value to reject or fail to reject the null hypothesis"
+    b = "The Null Hypothesis"
+    h0 = "𝐻0: The mean difference between short players' 3 point shooting percentage and tall players' 3 point shooting percentage is zero. i.e. 𝜇0=𝜇1"
+    alter = "The Alternate Hypothesis"
+    c = "In this example, the alternative hypothesis is that there is in fact a mean difference in 3 Points Shooting Percentage between short players and tall players."
+    
+    h1 = "𝐻1(2-tailed): The parameter of interest, our mean difference between short peoples' 3 point shooting percentage and tall players' 3 point shooting percentage, is different than zero."
+    
+    h1_1 = "𝐻1(1-tailed, >): TThe mean difference between short players' 3 point shooting percentage and tall players' 3 point shooting percentage is greater than zero."
+    
+    h1_1_1 = "𝐻1(1-tailed, <): The mean difference between short players' 3 point shooting percentage and tall players' 3 point shooting percentage is less than zero."
+    
+    print(a)
+    print(space)
+    print(b)
+    print(space)
+    print(h0)
+    print(space)
+    print(alter)
+    print(space)
+    print(h1)
+    print(space)
+    print(h1_1)
+    print(space)
+    print(h1_1_1)
+    print(space)
+    
+    mean_diff = round(np.mean(short_dist) - np.mean(tall_dist), 3)
+    n_short = len(short_dist)
+    n_tall = len(tall_dist)
+    dof = (n_short + n_tall - 2)
+    t_crit = Two_Sample_Test.t_crit(alpha, dof)
+    
+    result  = Two_Sample_Test.t_test(short_dist, tall_dist)
+    print(result)
+    t_stat = result[0]
+    p_value = result[1]
+    
+    Two_Sample_Test.visualize_t(t_stat, n_short, n_tall)
+    
+    Two_Sample_Test.conclusion(result, t_crit, alpha)
+
+        
+    
+def hypothesis_test_two(alpha, df):
+    skinny_players = df.loc[df['weight'] < 95]
+    heavy_players = df.loc[df['weight'] > 95]
+
+    sk_pl_w = skinny_players.weight
+    sk_pl_fauls = round(skinny_players['PF/G'],3)
+
+    heavy_pl_w = heavy_players.weight
+    heavy_pl_fauls = round(heavy_players['PF/G'],3)
+    
+    #Taking sample distributions via Central Limit Theorem
+    dist_size = 100
+    skinny_dist =CLT.create_sample_distribution(sk_pl_fauls,dist_size, n=30)
+    heavy_dist = CLT.create_sample_distribution(heavy_pl_fauls,dist_size, n=30)
+    
+    # Create a plot showing overlapping of distribution means and sds for inspection
+    Two_Sample_Test.visualize_dist(skinny_dist, heavy_dist)
+    
+    a = "1) Set up null and alternative hypotheses \n2) Choose a significance level \n3) Calculate the test statistic \n4) Determine the critical or p-value (find the rejection region) \n5) Compare t-value with critical t-value to reject or fail to reject the null hypothesis"
+    b = "The Null Hypothesis"
+    null_hyp = "𝐻0 H0: On average, heavy players' fauls percentage equals to the skinny players' faul percentage. i.e. 𝜇0=𝜇1"
+    h1 = "𝐻1(2-tailed): The parameter of interest, our mean difference between heavy players' fauls percentage and skinny players' fauls percentage, is different than zero."
+    h1_1 = "𝐻1(1-tailed, >): The mean difference between heavy players' fauls percentage and skinny players' fauls percentage is greater than zero. "
+    h1_1_1 = "𝐻1(1-tailed, <): The mean difference between heavy players' fauls percentage and skinny players' fauls percentage is less than zero."
+    space = "\n\n"
+    print(a)
+    print(space)
+    print(b)
+    print(space)
+    print(null_hyp)
+    print(space)
+    print(h1)
+    print(space)
+    print(h1_1)
+    print(space)
+    print(h1_1_1)
+    print(space)
+    
+    mean_diff = round(np.mean(heavy_dist) - np.mean(skinny_dist), 3)
+    n_heavy = len(heavy_dist)
+    n_skinny = len(skinny_dist)
+    dof = (n_heavy + n_skinny - 2)
+    
+    t_crit = Two_Sample_Test.t_crit(alpha, dof)
+    
+    result  = Two_Sample_Test.t_test(heavy_dist, skinny_dist)
+    print(result)
+    t_stat = result[0]
+    p_value = result[1]
+    
+    Two_Sample_Test.visualize_t(t_stat, n_heavy, n_skinny)
+    
+    Two_Sample_Test.conclusion(result, t_crit, alpha)
+
 
 class HT3():
     
